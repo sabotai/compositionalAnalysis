@@ -11,3 +11,10 @@
 *.lai
 *.la
 *.a
+
+bin/
+obj/
+
+#Code::Blocks
+*.depend
+*.layout
