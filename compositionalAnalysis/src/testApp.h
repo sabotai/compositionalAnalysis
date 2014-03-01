@@ -27,9 +27,13 @@ class testApp : public ofBaseApp{
 		Mat src, cdst, dst, imgMat, bw;
 		int threshold0, threshold1, threshold2;
 
-		bool showCanny;
+		bool showCanny, showOriginal, showLines, showCycle;
 
         //ofxCv::ofxCvGrayscaleImage grayscaleImg;
 //		ofxCvGrayscaleImage greyImg;
+
+        ofImage image[5000];
+        int imageCount;
+        int imageSelection;
 
 };

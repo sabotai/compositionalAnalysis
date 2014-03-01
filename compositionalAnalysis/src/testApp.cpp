@@ -14,10 +14,36 @@ void testApp::setup(){
     threshold1 = 50;
     threshold2 = 10;
 
+    showLines = true;
+    showOriginal = true;
+    showCycle = false;
+
     //ofImage img;
-    img.loadImage("test9.jpg");
-    //grayscaleImg = img;
-    imgMat = toCv(img);
+
+
+
+
+    string path = "jpg/";
+    ofDirectory dir(path);
+    //only show png files
+    //dir.allowExt("jpg");
+    //populate the directory object
+    dir.listDir();
+    imageCount = dir.numFiles() - 1;
+    cout << "Image count total = " << imageCount << endl;
+    cout << "Image selection is: " << imageSelection << endl;
+
+
+    //go through and print out all the paths
+    for(int i = 0; i < dir.numFiles(); i++){
+        //ofLogNotice(dir.getPath(i));
+        image[i].loadImage(dir.getPath(i));
+        cout << dir.getPath(i) << endl;
+
+        }
+
+    //img.loadImage(image[]);
+    imgMat = toCv(image[imageSelection]);
 
 }
 
@@ -30,13 +56,26 @@ void testApp::update(){
 void testApp::draw(){
     ofBackground(50,50,50);
 
+    if (showCycle){
+        if (imageSelection < imageCount) {
+            imageSelection++;
+        } else {
+            imageSelection = 0;
+        }
+        imgMat = toCv(image[imageSelection]);
+        cout << "CYCLING -- SELECTION IS: " << imageSelection << endl;
+    }
+
+
 
     //drawMat(src, 0, 0);
     //drawMat(imgMat, 0, 0);
     ofSetColor(255,255,255);
     //drawMat(dst, 0, 0);
 
-
+    if (showOriginal) {
+        drawMat(imgMat, 0, 0);
+    }
 
 
     cvtColor(imgMat, bw, COLOR_RGB2GRAY);
@@ -59,10 +98,13 @@ void testApp::draw(){
         start.set(l[0], l[1]);
         end.set(l[2], l[3]);
 
-        ofSetColor(255,0,0);
-        ofLine(start, end);
-        //cout << "start =" << start << endl;
-        //cout << "end = " << end << endl;
+
+        if (showLines){
+            ofSetColor(255,0,0);
+            ofLine(start, end);
+            //cout << "start =" << start << endl;
+            //cout << "end = " << end << endl;
+        }
 
     }
 
@@ -97,11 +139,43 @@ void testApp::keyPressed(int key){
     if (key == 'e'){
         showCanny = !showCanny;
     }
+    if (key == 'd'){
+        showOriginal = !showOriginal;
+    }
+    if (key == 'c'){
+        showLines = !showLines;
+    }
+
+    if (key == 'r') {
+        showCycle = !showCycle;
+    }
 
     cout << "threshold0: "<<threshold0 <<endl;
     cout << "threshold1: "<<threshold1 <<endl;
     cout << "threshold2: "<<threshold2 <<endl << endl;
 
+
+
+
+    if (key == OF_KEY_RIGHT || key == OF_KEY_LEFT){
+        if (key == OF_KEY_LEFT){
+            if (imageSelection > 0){
+                imageSelection -= 1;
+            } else {
+                imageSelection = imageCount;
+            }
+        }
+        if (key == OF_KEY_RIGHT){
+            if (imageSelection < imageCount){
+                imageSelection += 1;
+            } else {
+                imageSelection = 0;
+            }
+
+        }
+        imgMat = toCv(image[imageSelection]);
+        cout << "imageSelection = " << imageSelection << endl;
+    }
 }
 
 //--------------------------------------------------------------
