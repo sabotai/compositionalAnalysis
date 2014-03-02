@@ -116,7 +116,43 @@ void testApp::keyPressed(int key){
     //ofClamp(threshold1, 0, 1000);
     //ofClamp(threshold2, 0, 1000);
 
+    switch (key) {
+        case 'q' :
+            threshold0 += 1;
+            break;
+        case 'w' :
+            if (threshold0 > 1) {
+                threshold0 -= 1;}
+            break;
+        case 'a' :
+            threshold1 += 1;
+            break;
+        case 's' :
+            if (threshold1 > 0){
+                threshold1 -= 1;}
+            break;
+        case 'z' :
+            threshold2 += 1;
+            break;
+        case 'x' :
+            if (threshold2 > 0) {
+                threshold2 -= 1;}
+            break;
+        case 'e' :
+            showCanny = !showCanny;
+            break;
+        case 'd' :
+            showOriginal = !showOriginal;
+            break;
+        case 'c' :
+            showLines = !showLines;
+            break;
+        case 'r' :
+            showCycle = !showCycle;
+            break;
+    }
 
+/*
     if (key == 'q'){
         threshold0 += 1;
     } else if (key == 'w' && threshold0 > 1){
@@ -148,7 +184,7 @@ void testApp::keyPressed(int key){
 
     if (key == 'r') {
         showCycle = !showCycle;
-    }
+    }*/
 
     cout << "threshold0: "<<threshold0 <<endl;
     cout << "threshold1: "<<threshold1 <<endl;
