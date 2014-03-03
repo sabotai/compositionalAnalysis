@@ -1,22 +1,43 @@
 #include "testApp.h"
-
+/*
 #include "ofMain.h"
 #include "ofxCv.h"
-#include <iostream>
+#include <iostream>*/
+
+
+
+/*
+TO DO:
+
+3/4/14
+
+Figure out how to scale images and make them comparable -- are portait and landscape images comparison compatible?
+        e.g. if image y dimension > ofGetHeight, scale = 0.5
+
+Create vector to store and compare all the different image vec4i
+
+Find angle between 2 points, compare angles
+
+Find length of lines from 2 points, compare lengths and parallel
+
+Create pixel heat map from low alpha line drawings
+
+
+*/
 
 using namespace cv;
 using namespace ofxCv;
 cv::Mat src;
 //--------------------------------------------------------------
 void testApp::setup(){
-    ofSetLineWidth(1);
+
     threshold0 = 50;
     threshold1 = 50;
     threshold2 = 10;
 
-    showLines = true;
-    showOriginal = true;
-    showCycle = false;
+    //showLines = true;
+    //showOriginal = true;
+    //howCycle = false;
 
     //ofImage img;
 
@@ -30,7 +51,9 @@ void testApp::setup(){
     //populate the directory object
     dir.listDir();
     imageCount = dir.numFiles() - 1;
-    cout << "Image count total = " << imageCount << endl;
+
+
+    cout << "Image count total = " << imageCount + 1 << endl;
     cout << "Image selection is: " << imageSelection << endl;
 
 
@@ -45,6 +68,25 @@ void testApp::setup(){
     //img.loadImage(image[]);
     imgMat = toCv(image[imageSelection]);
 
+
+
+    gui.setup();
+	gui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
+	gui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
+	gui.add(threshold0.setup("minIntersections", 50, 1, 500));
+	gui.add(threshold1.setup("minLinLength", 50, 1, 1000));
+	gui.add(threshold2.setup("maxLineGap", 10, 1, 400));
+	gui.add(lineWidth.setup("line width", 3, 1, 10));
+	gui.add(showOriginal.setup("show image", true));
+	gui.add(showCanny.setup("show edges", false));
+	gui.add(showLines.setup("show lines", true));
+	gui.add(heatMap.setup("show heat map", false));
+	gui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
+	gui.add(showCycle.setup("cycling", false));
+
+	bHide = true;
+
+
 }
 
 //--------------------------------------------------------------
@@ -54,7 +96,8 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-    ofBackground(50,50,50);
+    ofBackground(10,10,10);
+    ofSetLineWidth(lineWidth);
 
     if (showCycle){
         if (imageSelection < imageCount) {
@@ -79,34 +122,55 @@ void testApp::draw(){
 
 
     cvtColor(imgMat, bw, COLOR_RGB2GRAY);
-    Canny(bw, dst, 50, 200, 3);
+    Canny(bw, dst, thresholdA, thresholdB, 3);
 
     //Canny(imgMat, dst, 50, 200, 3);
     cvtColor(dst, cdst, COLOR_GRAY2BGR);
 
     if (showCanny){
-        drawMat(cdst, 0, 0);}
+        drawMat(dst, 0, 0);}
 
     vector<Vec4i> lines;
     HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
-    ofSetLineWidth(3);
+    //ofSetLineWidth(3);
+
+
+    if (heatMap) {
+        heat = imageCount;
+        ofSetColor(0,0,255,heatMapAlpha);
+
+
+        for (int x = 0; x < imageCount; x++){
+            for (int z = 0; z < max; z++){
+                ofLine(start[x][z], end[x][z]);
+            }
+        }
+    } else {
+        ofSetColor(255,0,0);
+    }
+
+
+
     for( size_t i = 0; i < lines.size(); i++ )
     {
         Vec4i l = lines[i];
         //line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
-        ofPoint start, end;
-        start.set(l[0], l[1]);
-        end.set(l[2], l[3]);
-
-
-        if (showLines){
-            ofSetColor(255,0,0);
-            ofLine(start, end);
-            //cout << "start =" << start << endl;
-            //cout << "end = " << end << endl;
-        }
-
+        //ofPoint start, end;
+        start[imageSelection][i].set(l[0], l[1]);
+        end[imageSelection][i].set(l[2], l[3]);
+            if (showLines){
+                ofSetColor(255,0,0, 245);
+                ofLine(start[imageSelection][i], end[imageSelection][i]);
+            }
     }
+
+
+
+
+
+
+
+    gui.draw();
 
 }
 
@@ -117,7 +181,7 @@ void testApp::keyPressed(int key){
     //ofClamp(threshold2, 0, 1000);
 
     switch (key) {
-        case 'q' :
+        /*case 'q' :
             threshold0 += 1;
             break;
         case 'w' :
@@ -137,7 +201,7 @@ void testApp::keyPressed(int key){
         case 'x' :
             if (threshold2 > 0) {
                 threshold2 -= 1;}
-            break;
+            break;*/
         case 'e' :
             showCanny = !showCanny;
             break;
@@ -150,46 +214,23 @@ void testApp::keyPressed(int key){
         case 'r' :
             showCycle = !showCycle;
             break;
+        case 'h' :
+            bHide = !bHide;
+            break;
+        case 's' :
+            gui.saveToFile("settings.xml");
+            cout << "SETTINGS SAVED TO \"settings.xml\"" << endl;
+            break;
+        case 'l' :
+            gui.loadFromFile("settings.xml");
+            cout << "SETTINGS LOADED FROM \"settings.xml\"" << endl;
+            break;
     }
-
 /*
-    if (key == 'q'){
-        threshold0 += 1;
-    } else if (key == 'w' && threshold0 > 1){
-        threshold0 -= 1;
-    }
-
-
-    if (key == 'a'){
-        threshold1 += 1;
-    } else if (key == 's' && threshold1 > 1){
-        threshold1 -= 1;
-    }
-
-
-    if (key == 'z'){
-        threshold2 += 1;
-    } else if (key == 'x' && threshold2 > 1){
-        threshold2 -= 1;
-    }
-    if (key == 'e'){
-        showCanny = !showCanny;
-    }
-    if (key == 'd'){
-        showOriginal = !showOriginal;
-    }
-    if (key == 'c'){
-        showLines = !showLines;
-    }
-
-    if (key == 'r') {
-        showCycle = !showCycle;
-    }*/
-
     cout << "threshold0: "<<threshold0 <<endl;
     cout << "threshold1: "<<threshold1 <<endl;
     cout << "threshold2: "<<threshold2 <<endl << endl;
-
+*/
 
 
 
