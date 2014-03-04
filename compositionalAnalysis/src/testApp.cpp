@@ -20,8 +20,6 @@ Find angle between 2 points, compare angles
 
 Find length of lines from 2 points, compare lengths and parallel
 
-Create pixel heat map from low alpha line drawings
-
 
 */
 
@@ -46,7 +44,7 @@ void testApp::setup(){
 
     string path = "jpg/";
     ofDirectory dir(path);
-    //only show png files
+    //only show jpg files
     //dir.allowExt("jpg");
     //populate the directory object
     dir.listDir();
@@ -136,7 +134,6 @@ void testApp::draw(){
 
 
     if (heatMap) {
-        heat = imageCount;
         ofSetColor(0,0,255,heatMapAlpha);
 
 
@@ -159,7 +156,10 @@ void testApp::draw(){
         start[imageSelection][i].set(l[0], l[1]);
         end[imageSelection][i].set(l[2], l[3]);
             if (showLines){
-                ofSetColor(255,0,0, 245);
+                if (heatMap){
+                    ofSetColor(255,255,255,240);
+                } else {
+                    ofSetColor(255,0,0, 240);}
                 ofLine(start[imageSelection][i], end[imageSelection][i]);
             }
     }
@@ -169,8 +169,8 @@ void testApp::draw(){
 
 
 
-
-    gui.draw();
+    if (bHide) {
+        gui.draw();}
 
 }
 

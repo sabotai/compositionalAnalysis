@@ -51,6 +51,5 @@ class testApp : public ofBaseApp{
         bool bHide;
         ofxToggle showCanny, showOriginal, showLines, showCycle, heatMap;//, cannyToggle, linesToggle;
 
-        int heat;
 
 };
