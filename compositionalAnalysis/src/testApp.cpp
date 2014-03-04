@@ -19,14 +19,32 @@ Create vector to store and compare all the different image vec4i
 Find angle between 2 points, compare angles
 
 Find length of lines from 2 points, compare lengths and parallel
+    -most similar angles and the avg x/y point of them
+    -most vertical/horizontal lines -> should indicate which images are taken from flattened perspective, most vertical lines = buildings?
+    -most parallel lines = urban?, sort by angle/position
+    -most lines?
+
+    once sort function is chosen, then it reorders the photos
+
+What is the average line angle?  Average line coordinate?
+
+I could recognize so many of images... many vague feelings before confirmation
+Also, I could recognize some scenes (e.g. subway car interior) even though I didn't recognize the photo
+
+making sense of lines
 
 
 */
+
+
 
 using namespace cv;
 using namespace ofxCv;
 cv::Mat src;
 //--------------------------------------------------------------
+
+
+
 void testApp::setup(){
 
     threshold0 = 50;
@@ -41,17 +59,17 @@ void testApp::setup(){
 
 
 
-
     string path = "jpg/";
     ofDirectory dir(path);
     //only show jpg files
     //dir.allowExt("jpg");
     //populate the directory object
     dir.listDir();
+    dir.sort();
     imageCount = dir.numFiles() - 1;
 
 
-    cout << "Image count total = " << imageCount + 1 << endl;
+    cout << "Image count total = " << imageCount << endl;
     cout << "Image selection is: " << imageSelection << endl;
 
 
@@ -69,6 +87,7 @@ void testApp::setup(){
 
 
     gui.setup();
+	gui.add(filename.setup("", dir.getName(imageSelection)));
 	gui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
 	gui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
 	gui.add(threshold0.setup("minIntersections", 50, 1, 500));
@@ -92,10 +111,14 @@ void testApp::update(){
 
 }
 
+
+
 //--------------------------------------------------------------
 void testApp::draw(){
     ofBackground(10,10,10);
     ofSetLineWidth(lineWidth);
+
+
 
     if (showCycle){
         if (imageSelection < imageCount) {
@@ -103,7 +126,7 @@ void testApp::draw(){
         } else {
             imageSelection = 0;
         }
-        imgMat = toCv(image[imageSelection]);
+
         cout << "CYCLING -- SELECTION IS: " << imageSelection << endl;
     }
 
@@ -170,7 +193,15 @@ void testApp::draw(){
 
 
     if (bHide) {
-        gui.draw();}
+        string path = "jpg/";
+        ofDirectory dir2(path);
+        dir2.listDir();
+        dir2.sort();
+        filename = dir2.getName(imageSelection);
+        //filename = dir2.getName(imageSelection);
+
+        gui.draw();
+    }
 
 }
 
@@ -251,6 +282,9 @@ void testApp::keyPressed(int key){
 
         }
         imgMat = toCv(image[imageSelection]);
+
+
+
         cout << "imageSelection = " << imageSelection << endl;
     }
 }
@@ -294,3 +328,7 @@ void testApp::gotMessage(ofMessage msg){
 void testApp::dragEvent(ofDragInfo dragInfo){
 
 }
+
+
+
+

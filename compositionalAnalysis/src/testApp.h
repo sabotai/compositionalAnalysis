@@ -28,14 +28,19 @@ class testApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
+
 		ofImage img;
 		Mat src, cdst, dst, imgMat, bw;
+		string titlez;
 		//int threshold0, threshold1, threshold2;
 
 		//bool showCanny, showOriginal, showLines, showCycle;
 
         //ofxCv::ofxCvGrayscaleImage grayscaleImg;
 //		ofxCvGrayscaleImage greyImg;
+
+
 
         ofImage image[max];
         int imageCount;
@@ -50,6 +55,7 @@ class testApp : public ofBaseApp{
         ofxIntSlider heatMapAlpha;
         bool bHide;
         ofxToggle showCanny, showOriginal, showLines, showCycle, heatMap;//, cannyToggle, linesToggle;
+        ofxLabel filename;
 
 
 };
