@@ -31,7 +31,7 @@ class testApp : public ofBaseApp{
 
 
 		ofImage img;
-		Mat src, cdst, dst, imgMat, bw;
+		Mat src, cdst, dst, imgMat, bw, blurred;
 		string titlez;
 		//int threshold0, threshold1, threshold2;
 
@@ -52,9 +52,9 @@ class testApp : public ofBaseApp{
         ofxPanel gui;
         ofxFloatSlider threshold0, threshold1, threshold2;//t0slider, t1slider, t2slider;
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
-        ofxIntSlider heatMapAlpha;
+        ofxIntSlider heatMapAlpha, blurAmount;
         bool bHide;
-        ofxToggle showCanny, showOriginal, showLines, showCycle, heatMap;//, cannyToggle, linesToggle;
+        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap;//, cannyToggle, linesToggle;
         ofxLabel filename;
 
 

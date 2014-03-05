@@ -62,7 +62,7 @@ void testApp::setup(){
     string path = "jpg/";
     ofDirectory dir(path);
     //only show jpg files
-    //dir.allowExt("jpg");
+    dir.allowExt("jpg");
     //populate the directory object
     dir.listDir();
     dir.sort();
@@ -90,11 +90,16 @@ void testApp::setup(){
 	gui.add(filename.setup("", dir.getName(imageSelection)));
 	gui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
 	gui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
+
 	gui.add(threshold0.setup("minIntersections", 50, 1, 500));
 	gui.add(threshold1.setup("minLinLength", 50, 1, 1000));
 	gui.add(threshold2.setup("maxLineGap", 10, 1, 400));
+
 	gui.add(lineWidth.setup("line width", 3, 1, 10));
 	gui.add(showOriginal.setup("show image", true));
+	gui.add(blurToggle.setup("preprocess blur", true));
+	gui.add(blurAmount.setup("blur amount", 5, 1, 20));
+	gui.add(showBlur.setup("show blur", false));
 	gui.add(showCanny.setup("show edges", false));
 	gui.add(showLines.setup("show lines", true));
 	gui.add(heatMap.setup("show heat map", false));
@@ -126,6 +131,7 @@ void testApp::draw(){
         } else {
             imageSelection = 0;
         }
+        imgMat = toCv(image[imageSelection]);
 
         cout << "CYCLING -- SELECTION IS: " << imageSelection << endl;
     }
@@ -143,7 +149,18 @@ void testApp::draw(){
 
 
     cvtColor(imgMat, bw, COLOR_RGB2GRAY);
-    Canny(bw, dst, thresholdA, thresholdB, 3);
+
+    if (blurToggle){
+        blur( bw, blurred, Size(blurAmount,blurAmount) );
+        } else {
+        bw = blurred;
+        cout << "blur bypassed son" << endl;
+    }
+    if (showBlur){
+        drawMat(blurred, 0, 0);
+    }
+
+    Canny(blurred, dst, thresholdA, thresholdB, 3);
 
     //Canny(imgMat, dst, 50, 200, 3);
     cvtColor(dst, cdst, COLOR_GRAY2BGR);
