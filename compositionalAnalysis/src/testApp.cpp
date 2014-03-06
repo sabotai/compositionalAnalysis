@@ -33,6 +33,13 @@ Also, I could recognize some scenes (e.g. subway car interior) even though I did
 
 making sense of lines
 
+PERFORMANCE:
+
+too many images loaded = slow
+running heat map = slow
+only few images loaded = fast (unless heat map)
+ofEnableSmoothing() = slow while drawing tons of lines i.e. heat map
+
 
 */
 
@@ -46,10 +53,15 @@ cv::Mat src;
 
 
 void testApp::setup(){
+    ofSetWindowTitle("Compositional Analysis Tool");
+    //ofSetBackgroundAuto(false);
+
 
     threshold0 = 50;
     threshold1 = 50;
     threshold2 = 10;
+    imagesViewCount = 1;
+    //heatMap = false;
 
     //showLines = true;
     //showOriginal = true;
@@ -82,7 +94,8 @@ void testApp::setup(){
         }
 
     //img.loadImage(image[]);
-    imgMat = toCv(image[imageSelection]);
+
+    //imgMat = toCv(image[imageSelection]);
 
 
 
@@ -105,8 +118,16 @@ void testApp::setup(){
 	gui.add(heatMap.setup("show heat map", false));
 	gui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
 	gui.add(showCycle.setup("cycling", false));
+	gui.add(smoothToggle.setup("smooth", true));
+    gui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
 
 	bHide = true;
+	init = true;
+	initVal = 1;
+	heatMap = false;
+
+	//ofEnableSmoothing();
+    imageSelect();
 
 
 }
@@ -120,18 +141,30 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+    framerate = ofToString(ofGetFrameRate());
+
+
+ //   else { init = false;}
+
+//if (init == false){
     ofBackground(10,10,10);
     ofSetLineWidth(lineWidth);
 
-
+    if (smoothToggle){
+        ofEnableSmoothing();
+    } else {
+        ofDisableSmoothing();
+    }
 
     if (showCycle){
         if (imageSelection < imageCount) {
             imageSelection++;
+            imagesViewed();
         } else {
             imageSelection = 0;
         }
-        imgMat = toCv(image[imageSelection]);
+        //imgMat = toCv(image[imageSelection]);
+        imageSelect();
 
         cout << "CYCLING -- SELECTION IS: " << imageSelection << endl;
     }
@@ -168,26 +201,29 @@ void testApp::draw(){
     if (showCanny){
         drawMat(dst, 0, 0);}
 
-    vector<Vec4i> lines;
+    //vector<Vec4i> lines;
     HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
     //ofSetLineWidth(3);
 
 
     if (heatMap) {
+
+        //ofDisableSmoothing();
         ofSetColor(0,0,255,heatMapAlpha);
 
 
-        for (int x = 0; x < imageCount; x++){
+        for (int x = 0; x < imagesViewCount; x++){
             for (int z = 0; z < max; z++){
                 ofLine(start[x][z], end[x][z]);
             }
         }
     } else {
         ofSetColor(255,0,0);
+        //ofEnableSmoothing();
     }
 
 
-
+/*
     for( size_t i = 0; i < lines.size(); i++ )
     {
         Vec4i l = lines[i];
@@ -204,21 +240,32 @@ void testApp::draw(){
             }
     }
 
-
+*/
+   // if (neverLines){
+        generateLines();
+        //neverLines = false;}
 
 
 
 
     if (bHide) {
+    /*
         string path = "jpg/";
         ofDirectory dir2(path);
         dir2.listDir();
         dir2.sort();
         filename = dir2.getName(imageSelection);
         //filename = dir2.getName(imageSelection);
-
+    */
         gui.draw();
     }
+
+
+//fade in for app
+    if (initVal < 256){
+        ofSetColor(10,10,10,255-initVal);
+        ofRect(0,0,ofGetWidth(), ofGetHeight());
+        initVal += 2;}
 
 }
 
@@ -262,6 +309,12 @@ void testApp::keyPressed(int key){
         case 'r' :
             showCycle = !showCycle;
             break;
+        case 'f' :
+            heatMap = !heatMap;
+
+        case 'b' :
+            blurToggle = !blurToggle;
+            break;
         case 'h' :
             bHide = !bHide;
             break;
@@ -296,9 +349,9 @@ void testApp::keyPressed(int key){
             } else {
                 imageSelection = 0;
             }
-
+            imagesViewed();
         }
-        imgMat = toCv(image[imageSelection]);
+        imageSelect();//imgMat = toCv(image[imageSelection]);
 
 
 
@@ -347,5 +400,62 @@ void testApp::dragEvent(ofDragInfo dragInfo){
 }
 
 
+int testApp::imagesViewed(){
+    if (imagesViewCount < imageCount){
+    imagesViewCount += 1;}
 
+    return imagesViewCount;
+}
 
+void testApp::generateLines(){
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        Vec4i l = lines[i];
+        //line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+        //ofPoint start, end;
+        start[imageSelection][i].set(l[0], l[1]);
+        end[imageSelection][i].set(l[2], l[3]);
+            if (showLines){
+                if (heatMap){
+                    ofSetColor(255,255,255,240);
+                } else {
+                    ofSetColor(255,0,0, 240);}
+                ofLine(start[imageSelection][i], end[imageSelection][i]);
+            }
+    }
+
+}
+
+void testApp::imageSelect(){
+
+        imgMat = toCv(image[imageSelection]);
+
+        //run canny and hough and everything for efficiency
+/*
+            cvtColor(imgMat, bw, COLOR_RGB2GRAY);
+
+    if (blurToggle){
+        blur( bw, blurred, Size(blurAmount,blurAmount) );
+        } else {
+        bw = blurred;
+        cout << "blur bypassed son" << endl;
+    }
+    if (showBlur){
+        drawMat(blurred, 0, 0);
+    }
+
+    Canny(blurred, dst, thresholdA, thresholdB, 3);
+
+    //Canny(imgMat, dst, 50, 200, 3);
+    cvtColor(dst, cdst, COLOR_GRAY2BGR);
+
+    if (showCanny){
+        drawMat(dst, 0, 0);}
+
+    //vector<Vec4i> lines;
+    HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
+    //ofSetLineWidth(3);
+
+    //neverLines = true;
+*/
+}

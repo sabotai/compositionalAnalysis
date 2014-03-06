@@ -29,9 +29,17 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
+		void generateLines();
+		void imageSelect();
+		bool neverLines;
+
+        bool init;
+        int initVal;
 
 		ofImage img;
 		Mat src, cdst, dst, imgMat, bw, blurred;
+
+		vector<Vec4i> lines;
 		string titlez;
 		//int threshold0, threshold1, threshold2;
 
@@ -43,7 +51,8 @@ class testApp : public ofBaseApp{
 
 
         ofImage image[max];
-        int imageCount;
+        int imagesViewed();
+        int imageCount, imagesViewCount;
         int imageSelection;
         ofPoint start[max][max], end[max][max];
 
@@ -54,8 +63,8 @@ class testApp : public ofBaseApp{
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
         ofxIntSlider heatMapAlpha, blurAmount;
         bool bHide;
-        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap;//, cannyToggle, linesToggle;
-        ofxLabel filename;
+        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle;//, cannyToggle, linesToggle;
+        ofxLabel filename, framerate;
 
 
 };
