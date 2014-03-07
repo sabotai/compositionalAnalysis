@@ -33,7 +33,7 @@ class testApp : public ofBaseApp{
 		void imageSelect();
 		bool neverLines;
 
-        bool init;
+        bool init, refresh;
         int initVal;
 
 		ofImage img;
@@ -53,7 +53,7 @@ class testApp : public ofBaseApp{
         ofImage image[max];
         int imagesViewed();
         int imageCount, imagesViewCount;
-        int imageSelection;
+        int imageSelection, oldSelection;
         ofPoint start[max][max], end[max][max];
 
 
@@ -63,7 +63,9 @@ class testApp : public ofBaseApp{
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
         ofxIntSlider heatMapAlpha, blurAmount;
         bool bHide;
-        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle;//, cannyToggle, linesToggle;
+        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, glowToggle, oneShot;//, cannyToggle, linesToggle;
+        ofxToggle fastMode;
+
         ofxLabel filename, framerate;
 
 
