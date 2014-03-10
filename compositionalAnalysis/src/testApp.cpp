@@ -54,7 +54,7 @@ cv::Mat src;
 
 void testApp::setup(){
     ofSetWindowTitle("Compositional Analysis Tool");
-    ofSetBackgroundAuto(false);
+    //ofSetBackgroundAuto(false);
     refresh = true;
 
 
@@ -111,7 +111,7 @@ void testApp::setup(){
 	gui.add(threshold1.setup("minLinLength", 50, 1, 1000));
 	gui.add(threshold2.setup("maxLineGap", 10, 1, 400));
 
-	gui.add(lineWidth.setup("line width", 1.5, 1, 10));
+	gui.add(lineWidth.setup("line width", 2.5, 1, 10));
 	gui.add(showOriginal.setup("show image", true));
 	gui.add(blurToggle.setup("preprocess blur", true));
 	gui.add(blurAmount.setup("blur amount", 5, 1, 20));
@@ -122,9 +122,11 @@ void testApp::setup(){
 	gui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
 	gui.add(showCycle.setup("cycling", false));
 	gui.add(smoothToggle.setup("smooth", true));
-	gui.add(glowToggle.setup("glow", false));
+	gui.add(redGlowToggle.setup("red glow", false));
     gui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
     gui.add(fastMode.setup("fast mode", false));
+    gui.add(calcIndividual.setup("calculate: individual", false));
+    gui.add(calcTotal.setup("calculate: total", false));
     gui.add(oneShot.setup("export pdf", false));
 
 	bHide = true;
@@ -150,6 +152,7 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+
 
 	if( oneShot ){
 		ofBeginSaveScreenAsPDF("screenshot-"+ofGetTimestampString()+".pdf", false);
@@ -240,31 +243,24 @@ if (refresh == true || fastMode == false){
     }
 
 
-/*
-    for( size_t i = 0; i < lines.size(); i++ )
-    {
-        Vec4i l = lines[i];
-        //line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
-        //ofPoint start, end;
-        start[imageSelection][i].set(l[0], l[1]);
-        end[imageSelection][i].set(l[2], l[3]);
-            if (showLines){
-                if (heatMap){
-                    ofSetColor(255,255,255,240);
-                } else {
-                    ofSetColor(255,0,0, 240);}
-                ofLine(start[imageSelection][i], end[imageSelection][i]);
-            }
+    generateLines();
+
+    if (calcIndividual) { //
+        calcImageSelection();
     }
 
-*/
-   // if (neverLines){
-        generateLines();
-        //neverLines = false;}
+    if (calcTotal){
+        calcAverage();
 
-
-        refresh = false;
     }
+
+
+    refresh = false;
+    }
+
+
+
+
 
 
     if( oneShot ){
@@ -435,7 +431,7 @@ int testApp::imagesViewed(){
     return imagesViewCount;
 }
 
-void testApp::generateLines(){
+float testApp::generateLines(){
     for( size_t i = 0; i < lines.size(); i++ )
     {
         Vec4i l = lines[i];
@@ -451,8 +447,13 @@ void testApp::generateLines(){
 
             //if (imageSelection != oldSelection || init == true){
                 ofLine(start[imageSelection][i], end[imageSelection][i]); //draw lines for current selection
+                angle[imageSelection][i] = atan2(start[imageSelection][i].y - end[imageSelection][i].y, start[imageSelection][i].x - end[imageSelection][i].x);
+                angle[imageSelection][i] = angle[imageSelection][i] * 180 / PI;
+                //cout << "initial is " << angle[imageSelection][i] << " start is " << start[imageSelection][i] << " end is " << end[imageSelection][i] << endl;
+                //cout << angle[imageSelection][i] * 180 / PI << endl;
+//                cout<<angle[imageSelection].length<<endl;
 
-                if (glowToggle){
+                if (redGlowToggle){
                     ofSetColor(255, 0, 0, 100);
                     ofLine(start[imageSelection][i] -1, end[imageSelection][i] -1);
                     ofLine(start[imageSelection][i] +1, end[imageSelection][i] +1);
@@ -468,44 +469,176 @@ void testApp::generateLines(){
                     ofSetColor(255, 0, 0, 30);
                     ofLine(start[imageSelection][i] -5, end[imageSelection][i] -5);
                     ofLine(start[imageSelection][i] +5, end[imageSelection][i] +5);
-                    }
+                }
             //oldSelection = imageSelection;
             //}
         }
+        //return angle[imageSelection][i];
     }
+
 
 }
 
 void testApp::imageSelect(){
 
         imgMat = toCv(image[imageSelection]);
+}
 
-        //run canny and hough and everything for efficiency
-/*
-            cvtColor(imgMat, bw, COLOR_RGB2GRAY);
+float testApp::calcImageSelection(){
+    //first sort the parallels
 
-    if (blurToggle){
-        blur( bw, blurred, Size(blurAmount,blurAmount) );
+//int ii;
+  //  int jj;
+    float tmp;
+
+//for (int i = 0; i < max ){
+//averageTotal[imageSelection] = 0;}
+
+
+
+//FIND AVERAGE ANGLE -- not very useful, must find mode
+    float average = 0;
+    float averageCount = 0;
+    for(int z = 0; z < max; z++){
+        if (angle[imageSelection][z] < 0) {
+            angle[imageSelection][z] += 360; //convert negative angles into angle/360
+        }
+
+        if ((angle[imageSelection][z] != 0) && ((start[imageSelection][z].x != 0) && ((start[imageSelection][z].y != 0) ))) {
+            cout<< z<<" is " << angle[imageSelection][z] << " start is " << start[imageSelection][z] << " end is " << end[imageSelection][z] << endl;
+            average += angle[imageSelection][z];
+            averageCount++;
+
+        }
+    }
+
+    averageAngle[imageSelection] = average / averageCount;
+    cout<< "average angle is " << averageAngle[imageSelection] << endl;
+
+//SORT
+    for(int ii = 0; ii < averageCount; ii++) // arraylength is the length of the array you want to use
+    {
+        for(int jj = ii + 1; jj < averageCount; jj++) // j will always be after i
+        {
+            // array is the array itself
+            if(angle[imageSelection][ii] > angle[imageSelection][jj]) // check to see if it is larger than the other one
+            {
+                // if so then swap them
+                tmp = angle[imageSelection][jj];
+                angle[imageSelection][jj] = angle[imageSelection][ii];
+                angle[imageSelection][ii] = tmp;
+            }
+        }
+        cout << ii << " sort is " << angle[imageSelection][ii]<< endl;
+    }
+
+
+//FIND MODE ANGLE
+
+
+
+    int modeFrequency[360];
+    int modeSorted[4]; //top 5 frequencies
+
+
+
+    for (int j = 0; j < 360; j++){ //setting everything to 0
+        modeFrequency[j] = 0;
+
+        if (j < 5){
+            modeSorted[j] = 0;
+        }
+    }
+    for (int xx = 0; xx < averageCount; xx++){ //xx is each line in given imageSelection
+
+
+        if (int(angle[imageSelection][xx]) == int(angle[imageSelection][xx+1])){
+            //cout<<"angle same as next angle"<<endl;
+
+            modeFrequency[int(angle[imageSelection][xx])] += 1;
+
+            cout<<"current angle: " << angle[imageSelection][xx] << "   frequency: " << modeFrequency[int(angle[imageSelection][xx])] + 1 << endl; //the frequency of given mode plus the original
         } else {
-        bw = blurred;
-        cout << "blur bypassed son" << endl;
+            cout<<"angle is not the same"<<endl;
+        }
+
+
     }
-    if (showBlur){
-        drawMat(blurred, 0, 0);
-    }
 
-    Canny(blurred, dst, thresholdA, thresholdB, 3);
+//sort mode frequencies
+//should mode frequency comparisons be based on most frequent angle with a minimum frequency of maybe 5 or 10?
+//if modeFrequency[imageSelection][j] == modeFrequency[max][j] they have the same most common angle
+//then find out what the minimum
 
-    //Canny(imgMat, dst, 50, 200, 3);
-    cvtColor(dst, cdst, COLOR_GRAY2BGR);
+//also find top angle ratio to total angles
 
-    if (showCanny){
-        drawMat(dst, 0, 0);}
+    //int
+    for (int j = 0; j < 360; j++){
+        //for (int k = j+1; k < 360; k++);
+            //if (modeFrequency[j] > modeFrequency[k]) {
+            if (modeFrequency[j] > 0){
+                cout<<"Angle " << j << " has a frequency of " << modeFrequency[j]<<endl;
+                //tmp = modeFrequency[k];
+                //modeFrequency[k]
+    //            if frequency of next mode is greater than previous mode, assign previously top mode to 2nd, 2nd to third
+                if (modeFrequency[j] >= modeFrequency[modeSorted[0]]) {
+                    modeSorted[4] = modeSorted[3];
+                    modeSorted[3] = modeSorted[2];
+                    modeSorted[2] = modeSorted[1];
+                    modeSorted[1] = modeSorted[0];
+                    modeSorted[0] = j;//modeFrequency[j];
+                } else if (modeFrequency[j] >= modeFrequency[modeSorted[1]]){
+                    modeSorted[4] = modeSorted[3];
+                    modeSorted[3] = modeSorted[2];
+                    modeSorted[2] = modeSorted[1];
+                    modeSorted[1] = j;//modeFrequency[j];
 
-    //vector<Vec4i> lines;
-    HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
-    //ofSetLineWidth(3);
+                } else if (modeFrequency[j] >=  modeFrequency[modeSorted[2]]){
+                    modeSorted[4] = modeSorted[3];
+                    modeSorted[3] = modeSorted[2];
+                    modeSorted[2] = j;//modeFrequency[j];
 
-    //neverLines = true;
-*/
+                } else if (modeFrequency[j] >=  modeFrequency[modeSorted[3]]){
+                    modeSorted[4] = modeSorted[3];
+                    modeSorted[3] = j;//modeFrequency[j];
+
+                } else if (modeFrequency[j] >=  modeFrequency[modeSorted[4]]){
+                    modeSorted[4] = j;//modeFrequency[j];
+
+                }
+
+            }
+    } //first find the most common angles themselves and then find the associated frequency
+
+    cout << "top modes: " << modeSorted[0] << "," << modeSorted[1] << "," << modeSorted[2] << "," << modeSorted[3] << "," << modeSorted[4] << endl;
+
+    //find top angle prevelance ratio within a given image
+
+    dominantAnglePrevalence[imageSelection] = modeFrequency[modeSorted[0]]/ averageCount;
+    dominantAngle[imageSelection] = modeSorted[0]; //indexes the most common angle for this image
+
+    cout << "dominant angle (" << modeSorted[0] << ") is " << dominantAnglePrevalence[imageSelection] << endl;
+
+
+
+
+
+
+
+
+
+
+
+
+
+    calcIndividual = false;
+
+
+}
+
+
+float testApp::calcAverage(){
+
+
+
 }

@@ -6,7 +6,7 @@
 #include <iostream>
 
 #define max 5000
-//max is the maximum number of lines and images
+//max is the maximum number of lines and images, 5000 for what i was messing with
 
 
 using namespace cv;
@@ -29,8 +29,9 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		void generateLines();
+		float generateLines();
 		void imageSelect();
+		float calcImageSelection(), calcAverage();
 		bool neverLines;
 
         bool init, refresh;
@@ -55,6 +56,13 @@ class testApp : public ofBaseApp{
         int imageCount, imagesViewCount;
         int imageSelection, oldSelection;
         ofPoint start[max][max], end[max][max];
+        float angle[max][max];
+        int averageAngle[max];
+        //vector<float> angle;
+        int parallelCount[max];
+        //vector<float> parallels;
+        //int modeCount;
+        float dominantAnglePrevalence[max], dominantAngle[max];
 
 
 
@@ -63,8 +71,8 @@ class testApp : public ofBaseApp{
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
         ofxIntSlider heatMapAlpha, blurAmount;
         bool bHide;
-        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, glowToggle, oneShot;//, cannyToggle, linesToggle;
-        ofxToggle fastMode;
+        ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
+        ofxToggle fastMode, calcIndividual, calcTotal;
 
         ofxLabel filename, framerate;
 
