@@ -119,12 +119,14 @@ void testApp::setup(){
 	gui.add(showCanny.setup("show edges", false));
 	gui.add(showLines.setup("show lines", true));
 	gui.add(heatMap.setup("show heat map", false));
+	gui.add(heatMapB.setup("show heat map b", false));
 	gui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
 	gui.add(showCycle.setup("cycling", false));
 	gui.add(smoothToggle.setup("smooth", true));
 	gui.add(redGlowToggle.setup("red glow", false));
     gui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
     gui.add(fastMode.setup("fast mode", false));
+    gui.add(angleTolerance.setup("angle tolerance", 0, 0, 100));
     gui.add(calcIndividual.setup("calculate: individual", false));
     gui.add(calcTotal.setup("calculate: total", false));
     gui.add(oneShot.setup("export pdf", false));
@@ -237,6 +239,24 @@ if (refresh == true || fastMode == false){
                 ofLine(start[x][z], end[x][z]);
             }
         }
+    } else {
+        ofSetColor(255,0,0);
+        //ofEnableSmoothing();
+    }
+
+    if (heatMapB) {
+           ofSetColor(0,0,255,heatMapAlpha);
+
+
+        for (int x = 0; x < imagesViewCount; x++){
+            for (int z = 0; z < max; z++){
+                ofCircle(start[x][z], 5);
+                ofCircle(end[x][z], 5);
+            }
+        }
+
+
+
     } else {
         ofSetColor(255,0,0);
         //ofEnableSmoothing();
@@ -473,6 +493,7 @@ float testApp::generateLines(){
             //oldSelection = imageSelection;
             //}
         }
+
         //return angle[imageSelection][i];
     }
 
@@ -552,7 +573,8 @@ float testApp::calcImageSelection(){
     for (int xx = 0; xx < averageCount; xx++){ //xx is each line in given imageSelection
 
 
-        if (int(angle[imageSelection][xx]) == int(angle[imageSelection][xx+1])){
+        if (int(angle[imageSelection][xx]) == int(angle[imageSelection][xx+1])){ //this is the old line before adding angleTolerance
+        //if ( int(angle[imageSelection][xx]) <= int(angle[imageSelection][xx+1]) + angleTolerance){ //failed attempt at adding angle tolerance ... doesnt work because of if statement doesnt check a range, only the next one... needs to be for loop cycling through all of them
             //cout<<"angle same as next angle"<<endl;
 
             modeFrequency[int(angle[imageSelection][xx])] += 1;

@@ -69,10 +69,10 @@ class testApp : public ofBaseApp{
         ofxPanel gui;
         ofxFloatSlider threshold0, threshold1, threshold2;//t0slider, t1slider, t2slider;
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
-        ofxIntSlider heatMapAlpha, blurAmount;
+        ofxIntSlider heatMapAlpha, blurAmount, angleTolerance;
         bool bHide;
         ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
-        ofxToggle fastMode, calcIndividual, calcTotal;
+        ofxToggle fastMode, calcIndividual, calcTotal, heatMapB;
 
         ofxLabel filename, framerate;
 
