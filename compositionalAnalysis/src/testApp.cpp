@@ -9,6 +9,24 @@
 /*
 TO DO:
 
+3/10/14
+
+add something to highlight the individual angles when you hover over the line
+
+finish total sorts and calcAverage()
+
+fix the titles
+
+clean up gui
+
+figure out angle tolerance for averages -- some arent calculating well
+
+change color of the circles at end points and make the diameter into a slider
+
+
+
+
+
 3/4/14
 
 Figure out how to scale images and make them comparable -- are portait and landscape images comparison compatible?
@@ -119,16 +137,17 @@ void testApp::setup(){
 	gui.add(showCanny.setup("show edges", false));
 	gui.add(showLines.setup("show lines", true));
 	gui.add(heatMap.setup("show heat map", false));
-	gui.add(heatMapB.setup("show heat map b", false));
+	gui.add(heatMapB.setup("show heat map points", false));
 	gui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
 	gui.add(showCycle.setup("cycling", false));
 	gui.add(smoothToggle.setup("smooth", true));
 	gui.add(redGlowToggle.setup("red glow", false));
     gui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
     gui.add(fastMode.setup("fast mode", false));
-    gui.add(angleTolerance.setup("angle tolerance", 0, 0, 100));
+    //gui.add(angleTolerance.setup("angle tolerance", 0, 0, 100));
     gui.add(calcIndividual.setup("calculate: individual", false));
     gui.add(calcTotal.setup("calculate: total", false));
+    gui.add(automate.setup("automate calculations", false));
     gui.add(oneShot.setup("export pdf", false));
 
 	bHide = true;
@@ -278,7 +297,49 @@ if (refresh == true || fastMode == false){
     refresh = false;
     }
 
+    if (automate){
+         //imageSelection = 0;//start at the beginning
+         imagesViewCount = 0;
 
+        for (int i = 0; i <= imageCount; i++){ //cycle through and process each image
+            imageSelection = i;
+            imageSelect();
+            imagesViewed();
+
+            if (showOriginal) {
+                drawMat(imgMat, 0, 0);
+            }
+
+            cvtColor(imgMat, bw, COLOR_RGB2GRAY);
+
+            if (blurToggle){
+                blur( bw, blurred, Size(blurAmount,blurAmount) );
+                } else {
+                bw = blurred;
+            }
+
+            Canny(blurred, dst, thresholdA, thresholdB, 3);
+
+            //Canny(imgMat, dst, 50, 200, 3);
+            cvtColor(dst, cdst, COLOR_GRAY2BGR);
+
+            if (showCanny){
+                drawMat(dst, 0, 0);}
+
+            //vector<Vec4i> lines;
+            HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
+            //ofSetLineWidth(3);
+
+
+            generateLines();
+
+            calcImageSelection();
+            calcAverage();
+
+        }
+        cout << " DONE AUTOMATING -- JESUS CHRIST, FINALLY!" << endl;
+        automate = false;
+    }
 
 
 
@@ -660,7 +721,13 @@ float testApp::calcImageSelection(){
 
 
 float testApp::calcAverage(){
+//find most common angle to find some kind of most average image
+//can then cycle through to least similar -> so if angle 180 is mode angle, things that are closest to mode angle with highest dominanceRatio are next
 
+//arrange the photos by angle (e.g. 10, 10, 20, 90, 90, 90, 120, etc.  the tie breakers would be based on highest dominanceRatio
+
+
+//also can arrange photos by how dominant dominantRatio is
 
 
 }

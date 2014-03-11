@@ -73,6 +73,7 @@ class testApp : public ofBaseApp{
         bool bHide;
         ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
         ofxToggle fastMode, calcIndividual, calcTotal, heatMapB;
+        ofxToggle automate;
 
         ofxLabel filename, framerate;
 
