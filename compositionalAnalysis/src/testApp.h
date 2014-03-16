@@ -52,7 +52,7 @@ class testApp : public ofBaseApp{
 
 
         ofImage image[max];
-        string imagePath[max];
+        string imagePath[max], imagePathB[max];
 
         int imagesViewed();
         int imageCount, imagesViewCount;

@@ -8,6 +8,12 @@ TO DO:
 
 currently only supports the top mode angle (interModeSorted[0])
 
+basic sort is now working, simply based on primary angle-- need to now add in consideration of the actual dominance of the image
+
+sorting some things led to repetition... why?
+
+involve the top angles, not just the primary one
+
 
 3/12/14 -- set the initial angle to something arbitrary like 361 so it can ignore those
 look into drawing the lines with small ellipses with xeno interpolation
@@ -797,6 +803,7 @@ for (int i = 0; i < imageCount; i++){
         }
     }
 
+    interDistinctiveAngleCount = 0;
 
     for (int i = 0; i < 360; i++){
 
@@ -812,20 +819,21 @@ for (int i = 0; i < imageCount; i++){
         }
             specialSort[i] = interSpecial[i];
     }
-    cout<< "There are " << interDistinctiveAngleCount << " different dominant angles to sort."<<endl;
+
+
 
 
     //now sort them by special score
     for (int i = 0; i < 360; i++){
-    for (int j = 0; j < 360; j++){
-   //if (specialSort[i] != 0){
-        if (specialSort[i] > specialSort[j]){
-            float container = specialSort[i];
-            specialSort[i] = specialSort[j];
-            specialSort[j] = container;
+        for (int j = 0; j < 360; j++){
+       //if (specialSort[i] != 0){
+            if (specialSort[i] > specialSort[j]){
+                float container = specialSort[i];
+                specialSort[i] = specialSort[j];
+                specialSort[j] = container;
 
+            }
         }
-    }
     }
 
     for (int i = 0; i < 360; i++){
@@ -835,9 +843,12 @@ for (int i = 0; i < imageCount; i++){
         }
     }
     }
+    //interDistinctiveAngleCount += 1;
+    specialSort[interDistinctiveAngleCount] = 361;
+    cout<< "There are " << interDistinctiveAngleCount << " different dominant angles to sort."<<endl;
 
     cout<<"The top angles by special score are: ";
-    for(int i = 0; i < interDistinctiveAngleCount; i++){
+    for(int i = 0; i <= interDistinctiveAngleCount; i++){
             cout << specialSort[i] << ", ";
 
     }
@@ -862,31 +873,34 @@ float testApp::reloadImages(){
     }
 
     int currentPosition = 0;
-    //for (int i = 0; i < interDistinctiveAngleCount; i++){ // i is current top angle, like 0-180, 1-90, 2-150, etc.
+    for (int i = 0; i <= interDistinctiveAngleCount; i++){ // i is current top angle, like 0-180, 1-90, 2-150, etc.
         for (int j = 0; j <= imageCount; j++){
         //for (int i = 0; i <= imageCount; i++){
             if (dominantAngle[j] == specialSort[i]){
                 //move forward
+                cout<<"i = " << i << " j = " << j << " current position = "<< currentPosition << endl;
+
+                /*
                 string container = imagePath[currentPosition];
                 imagePath[currentPosition] = imagePath[j];
                 imagePath[j] = container;
+                */
+
+                imagePathB[currentPosition] = imagePath[j];
+
+
+
                 currentPosition++;
-                //cout<<"swap"<<endl;
             }
-        //}
+        }
     }
 
 
     for (int i = 0; i <=imageCount; i++){
-        cout<< "image " << i << " sorted path is " <<  imagePath[i] << " angle: " <<dominantAngle[i] << endl;
+        cout<< "image " << i << " sorted path is " <<  imagePathB[i] << endl;
+        image[i].loadImage(imagePathB[i]);
     }
 
-/*    for(int i = 0; i < dir.numFiles(); i++){
-        //ofLogNotice(dir.getPath(i));
-        image[i].loadImage(dir.getPath(i));
-        cout << dir.getPath(i) << endl;
 
-        }
-*/
     sortImages = false;
 }
