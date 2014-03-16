@@ -31,7 +31,7 @@ class testApp : public ofBaseApp{
 
 		float generateLines();
 		void imageSelect();
-		float calcImageSelection(), calcAverage();
+		float calcImageSelection(), calcAverage(), reloadImages();
 		bool neverLines;
 
         bool init, refresh;
@@ -52,6 +52,8 @@ class testApp : public ofBaseApp{
 
 
         ofImage image[max];
+        string imagePath[max];
+
         int imagesViewed();
         int imageCount, imagesViewCount;
         int imageSelection, oldSelection;
@@ -62,18 +64,25 @@ class testApp : public ofBaseApp{
         int parallelCount[max];
         //vector<float> parallels;
         //int modeCount;
-        float dominantAnglePrevalence[max], dominantAngle[max];
+        float dominantAnglePrevalence[max][4], dominantAngle[max];
+        int modeSorted[max][4]; //top 5 frequencies
+        int interModeFrequency[362];
+        float interModeWeight[362];
+        float interSpecial[362];
 
+
+        int interDistinctiveAngleCount;
+        float specialSort[362]; //top angles sorted by special score (sum(each angle occurance * each dominance )(
 
 
         ofxPanel gui;
         ofxFloatSlider threshold0, threshold1, threshold2;//t0slider, t1slider, t2slider;
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
-        ofxIntSlider heatMapAlpha, blurAmount, angleTolerance;
+        ofxIntSlider heatMapAlpha, blurAmount, angleTolerance, angleAverageThreshold;
         bool bHide;
         ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
         ofxToggle fastMode, calcIndividual, calcTotal, heatMapB;
-        ofxToggle automate;
+        ofxToggle automate, sortImages;
 
         ofxLabel filename, framerate;
 
