@@ -31,7 +31,7 @@ class testApp : public ofBaseApp{
 
 		float generateLines();
 		void imageSelect();
-		float calcImageSelection(), calcAverage(), reloadImages();
+		float calcImageSelection(), calcAverage(), reloadImages(), reloadImagesB();
 		bool neverLines;
 
         bool init, refresh;
@@ -52,7 +52,7 @@ class testApp : public ofBaseApp{
 
 
         ofImage image[max];
-        string imagePath[max], imagePathB[max];
+        string imagePath[max], imagePathB[max], imagePathC[max];
 
         int imagesViewed();
         int imageCount, imagesViewCount;
@@ -82,7 +82,7 @@ class testApp : public ofBaseApp{
         bool bHide;
         ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
         ofxToggle fastMode, calcIndividual, calcTotal, heatMapB;
-        ofxToggle automate, sortImages;
+        ofxToggle automate, sortImages, sortImagesB;
 
         ofxLabel filename, framerate;
 

@@ -4,13 +4,17 @@
 
 /*
 TO DO:
+3/17/14
+
+ok, now it orders images by top angle, then resorts by top dominant angle (undoing before)... need to make it consider both
+
 3/15/14
 
 currently only supports the top mode angle (interModeSorted[0])
 
 basic sort is now working, simply based on primary angle-- need to now add in consideration of the actual dominance of the image
 
-sorting some things led to repetition... why?
+sorting some things led to repetition... why? ----- problem was tha tsome angles have the same dominance ratio; fixed by adding negligible amount to the end once one has been used
 
 involve the top angles, not just the primary one
 
@@ -133,7 +137,7 @@ void testApp::setup(){
 
 
     gui.setup();
-	gui.add(filename.setup("", dir.getName(imageSelection)));
+	gui.add(filename.setup("",imagePath[imageSelection]));
 	gui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
 	gui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
 
@@ -162,6 +166,7 @@ void testApp::setup(){
     gui.add(calcTotal.setup("calculate: total", false));
     gui.add(automate.setup("automate calculations", false));
     gui.add(sortImages.setup("resort the images", false));
+    gui.add(sortImagesB.setup("resort the images B", false));
     gui.add(oneShot.setup("export pdf", false));
 
 	bHide = true;
@@ -187,6 +192,7 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+    filename = imagePath[imageSelection];
 
 
 	if( oneShot ){
@@ -364,6 +370,10 @@ if (refresh == true || fastMode == false){
         reloadImages();
     }
 
+    if(sortImagesB){
+        reloadImagesB();
+    }
+
 
     if( oneShot ){
 		ofEndSaveScreenAsPDF();
@@ -478,8 +488,9 @@ void testApp::keyPressed(int key){
         imageSelect();//imgMat = toCv(image[imageSelection]);
 
 
-
-        cout << "imageSelection = " << imageSelection << endl;
+        for (int i = 0; i <= angleAverageThreshold; i++){
+            cout << "modeSorted for image " << imageSelection << " / mode number " << i << " is:   "<<modeSorted[imageSelection][i]<< " dominantAnglePrev: " <<dominantAnglePrevalence[imageSelection][i] << endl;
+        }
     }
 
     refresh = true;
@@ -823,11 +834,14 @@ for (int i = 0; i < imageCount; i++){
 
 
 
+
+
     //now sort them by special score
+     // interSpecial = that angle's special score, specialSort = that angle ordered
     for (int i = 0; i < 360; i++){
         for (int j = 0; j < 360; j++){
        //if (specialSort[i] != 0){
-            if (specialSort[i] > specialSort[j]){
+            if (specialSort[i] >= specialSort[j]){
                 float container = specialSort[i];
                 specialSort[i] = specialSort[j];
                 specialSort[j] = container;
@@ -835,10 +849,15 @@ for (int i = 0; i < imageCount; i++){
             }
         }
     }
+    /*for (int i = 0; i < 360; i++){
+        cout << i << "(i) is " << specialSort[i] << endl;
+    }*/
+
 
     for (int i = 0; i < 360; i++){
     for (int j = 0; j < 360; j++){
-        if (specialSort[i] == interSpecial[j]){
+        if (specialSort[i] == interSpecial[j]){ //convert specialSort from the special score to the actual angle
+            interSpecial[j] += .000001; //try to differentiate them against several angles having the same value
             specialSort[i] = j;
         }
     }
@@ -868,39 +887,175 @@ float testApp::reloadImages(){
 
 //if the dominant angle matches the specialSort, then move it up
 
+    int currentPosition = 0;
+    int pathOrder[imageCount];
+    float tempDom[imageCount], newDom[imageCount];
+
     for (int i = 0; i <=imageCount; i++){
-        cout<< "image " << i << " presorted path is " <<  imagePath[i] << " angle: " <<dominantAngle[i] << endl;
+        cout<< "image " << i << " presorted path is " <<  imagePath[i] << " angle: " <<dominantAngle[i] << " domAnglePrev: " << dominantAnglePrevalence[i][0] << endl;
+        pathOrder[imageCount] = 0;
+        tempDom[imageCount] = 0;
+        newDom[imageCount] = 0;
     }
 
-    int currentPosition = 0;
+
     for (int i = 0; i <= interDistinctiveAngleCount; i++){ // i is current top angle, like 0-180, 1-90, 2-150, etc.
         for (int j = 0; j <= imageCount; j++){
-        //for (int i = 0; i <= imageCount; i++){
+       // for (int k = 0; k <= imageCount; k++){
             if (dominantAngle[j] == specialSort[i]){
                 //move forward
-                cout<<"i = " << i << " j = " << j << " current position = "<< currentPosition << endl;
+                cout<<"Angle # " << i << "  " << specialSort[i] <<" Image # " << j << "  " << dominantAngle[j] << " current position = "<< currentPosition << endl;
 
-                /*
-                string container = imagePath[currentPosition];
-                imagePath[currentPosition] = imagePath[j];
-                imagePath[j] = container;
-                */
-
+             /*   if (dominantAnglePrevalence[j][i] >= dominantAnglePrevalence[k][i]){
+                    string container = imagePath[currentPosition];
+                    imagePath[currentPosition] = imagePath[j];
+                    imagePath[j] = container;
+                }
+*/
                 imagePathB[currentPosition] = imagePath[j];
+                //imagePathC[currentPosition] = imagePath[j];
+                tempDom[currentPosition] = dominantAnglePrevalence[j][0];
+                newDom[currentPosition] = dominantAnglePrevalence[j][0];
 
 
 
                 currentPosition++;
             }
+        //}
+        }
+    }
+    /*for (int i = 0; i <= imageCount; i++){ //ANOTHER TEST, at this stage, its still correct
+        cout<< "newDom[" << i <<"] = " << newDom[i] << " tempDom["<<i<<"] = " << tempDom[i] <<endl;
+
+    }*/
+
+
+        for (int i = 0; i <= imageCount; i++){
+            for (int j = 0; j <= imageCount; j++){
+                if ((newDom[i] == newDom[j] ) && (i != j)){
+                        tempDom[i] += 0.000001;
+                        newDom[i] += 0.000001;
+                        cout << "added some to "<<i<< "  dom = " << newDom[i] <<endl;
+                }
+            }
+        }
+
+    /*for (int i = 0; i <= imageCount; i++){ //ANOTHER TEST, at this stage, its still correct
+        cout<< "newDom2[" << i <<"] = " << newDom[i] << " tempDom2["<<i<<"] = " << tempDom[i] <<endl;
+
+    }*/
+
+
+    currentPosition = 0;
+    for (int i = 0; i <= interDistinctiveAngleCount; i++){ // i is current top angle, like 0-180, 1-90, 2-150, etc.
+        for (int j = 0; j <= imageCount; j++){
+            for (int k = 0; k <= imageCount; k++){
+                //if (dominantAngle[j] == specialSort[i]){
+                    //move forward
+                   // cout<<"Angle # " << i << "  " << specialSort[i] <<" Image # " << j << "  " << dominantAngle[j] << " current position = "<< currentPosition << endl;
+
+                    if (newDom[j] >= newDom[k]){
+                        float container = newDom[j];
+                        newDom[j] = newDom[k];
+                        newDom[k] = container;
+                    }
+
+                    //imagePathB[currentPosition] = imagePath[j];
+                    }
+                //}
+        }
+    }
+    for (int i = 0; i < imageCount; i++){
+        cout << "debug temp dom = " << tempDom[i] << "  ordered dom = " << newDom[i] << endl;
+        cout << "imagePathB     = " << imagePathB[i] << endl;
+    }
+
+
+    for (int i = 0; i <=imageCount; i++){ //change to new path
+        for (int j = 0; j <= imageCount; j++){
+
+
+            if (newDom[i] == tempDom[j]){
+                    imagePathC[i] = imagePathB[j];
+                    cout << "sort -- imagePathB " << j << " " << imagePathB[j] << " becomes " << i << endl;
+
+            }
+
         }
     }
 
 
+
+
+
     for (int i = 0; i <=imageCount; i++){
-        cout<< "image " << i << " sorted path is " <<  imagePathB[i] << endl;
-        image[i].loadImage(imagePathB[i]);
+        cout<< "image " << i << " sorted path C is " <<  imagePathC[i] <<  " newDom is " << newDom[i]<<endl;
+       // dominantAnglePrevalence[i][0] = newDom[i];
+
+        //image[i].loadImage(imagePathB[i]);
+        imagePath[i] = imagePathC[i];
+        image[i].loadImage(imagePathC[i]);
+    }
+
+    cout<<"RUN AUTOMATE CALCULATIONS AGAIN TO UPDATE FOR NEW SORT ORDER"<<endl;
+    sortImages = false;
+}
+
+
+
+
+
+float testApp::reloadImagesB(){
+//reload the images based on the calculations
+
+//if the dominant angle matches the specialSort, then move it up
+
+    int currentPosition = 0;
+    int pathOrder[imageCount];
+    float tempDom[imageCount], newDom[imageCount];
+
+    for (int i = 0; i <=imageCount; i++){
+        cout<< "image " << i << " presorted path is " <<  imagePath[i] << " angle: " <<dominantAngle[i] << " domAnglePrev: " << dominantAnglePrevalence[i][0] << endl;
+        pathOrder[imageCount] = 0;
+        tempDom[imageCount] = 0;
+        newDom[imageCount] = 0;
     }
 
 
-    sortImages = false;
+    for (int i = 0; i <= interDistinctiveAngleCount; i++){ // i is current top angle, like 0-180, 1-90, 2-150, etc.
+        for (int j = 0; j <= imageCount; j++){
+       // for (int k = 0; k <= imageCount; k++){
+            if (dominantAngle[j] == specialSort[i]){
+                //move forward
+                cout<<"Angle # " << i << "  " << specialSort[i] <<" Image # " << j << "  " << dominantAngle[j] << " current position = "<< currentPosition << endl;
+
+             /*   if (dominantAnglePrevalence[j][i] >= dominantAnglePrevalence[k][i]){
+                    string container = imagePath[currentPosition];
+                    imagePath[currentPosition] = imagePath[j];
+                    imagePath[j] = container;
+                }
+*/
+                imagePath[currentPosition] = imagePathC[j];
+                //imagePathC[currentPosition] = imagePath[j];
+                tempDom[currentPosition] = dominantAnglePrevalence[j][0];
+                newDom[currentPosition] = dominantAnglePrevalence[j][0];
+
+
+
+                currentPosition++;
+            }
+        //}
+        }
+    }
+    for (int i = 0; i <=imageCount; i++){
+        cout<< "image " << i << " sorted path B is " <<  imagePath[i] <<  " newDom is " << newDom[i]<<endl;
+       // dominantAnglePrevalence[i][0] = newDom[i];
+
+        //image[i].loadImage(imagePathB[i]);
+        //imagePath[i] = imagePath[i];
+        image[i].loadImage(imagePath[i]);
+    }
+
+    cout<<"RUN AUTOMATE CALCULATIONS AGAIN TO UPDATE FOR NEW SORT ORDER"<<endl;
+    sortImagesB = false;
 }
