@@ -31,7 +31,7 @@ class testApp : public ofBaseApp{
 
 		float generateLines();
 		void imageSelect();
-		float calcImageSelection(), calcAverage(), reloadImages(), reloadImagesB();
+		float calcImageSelection(), calcAverage(), doAutomation(), reloadImages(), reloadImagesB();
 		bool neverLines;
 
         bool init, refresh;
@@ -52,7 +52,7 @@ class testApp : public ofBaseApp{
 
 
         ofImage image[max];
-        string imagePath[max], imagePathB[max], imagePathC[max];
+        string imagePath[max], imagePathB[max], imagePathC[max], imagePathD[max];
 
         int imagesViewed();
         int imageCount, imagesViewCount;

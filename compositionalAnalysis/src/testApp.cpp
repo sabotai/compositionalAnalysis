@@ -323,44 +323,8 @@ if (refresh == true || fastMode == false){
     }
 
     if (automate){
-         //imageSelection = 0;//start at the beginning
-         imagesViewCount = 0;
 
-        for (int i = 0; i <= imageCount; i++){ //cycle through and process each image
-            imageSelection = i;
-            imageSelect();
-            imagesViewed();
-
-            if (showOriginal) {
-                drawMat(imgMat, 0, 0);
-            }
-
-            cvtColor(imgMat, bw, COLOR_RGB2GRAY);
-
-            if (blurToggle){
-                blur( bw, blurred, Size(blurAmount,blurAmount) );
-                } else {
-                bw = blurred;
-            }
-
-            Canny(blurred, dst, thresholdA, thresholdB, 3);
-
-            //Canny(imgMat, dst, 50, 200, 3);
-            cvtColor(dst, cdst, COLOR_GRAY2BGR);
-
-            if (showCanny){
-                drawMat(dst, 0, 0);}
-
-            //vector<Vec4i> lines;
-            HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
-            //ofSetLineWidth(3);
-
-
-            generateLines();
-
-            calcImageSelection();
-
-        }
+        doAutomation();
         calcAverage();
         cout << " DONE AUTOMATING -- JESUS CHRIST, FINALLY!" << endl;
         automate = false;
@@ -371,6 +335,9 @@ if (refresh == true || fastMode == false){
     }
 
     if(sortImagesB){
+        //doAutomation();
+        //calcAverage();
+        //reloadImages();
         reloadImagesB();
     }
 
@@ -446,6 +413,9 @@ void testApp::keyPressed(int key){
 
         case 'b' :
             blurToggle = !blurToggle;
+            break;
+        case 'p' :
+            calcIndividual = !calcIndividual;
             break;
         case 'h' :
             bHide = !bHide;
@@ -929,13 +899,16 @@ float testApp::reloadImages(){
 
     }*/
 
+    float spacer = 0.000001;
 
         for (int i = 0; i <= imageCount; i++){
             for (int j = 0; j <= imageCount; j++){
                 if ((newDom[i] == newDom[j] ) && (i != j)){
-                        tempDom[i] += 0.000001;
-                        newDom[i] += 0.000001;
-                        cout << "added some to "<<i<< "  dom = " << newDom[i] <<endl;
+                        tempDom[j] += spacer;
+                        newDom[j] += spacer;
+                        spacer  += .000001;
+                        cout << "added some to "<<i<< "  dom = " << newDom[j] <<endl;
+
                 }
             }
         }
@@ -971,6 +944,8 @@ float testApp::reloadImages(){
     }
 
 
+
+
     for (int i = 0; i <=imageCount; i++){ //change to new path
         for (int j = 0; j <= imageCount; j++){
 
@@ -994,6 +969,7 @@ float testApp::reloadImages(){
 
         //image[i].loadImage(imagePathB[i]);
         imagePath[i] = imagePathC[i];
+        imagePathD[i] = imagePathC[i];
         image[i].loadImage(imagePathC[i]);
     }
 
@@ -1035,7 +1011,7 @@ float testApp::reloadImagesB(){
                     imagePath[j] = container;
                 }
 */
-                imagePath[currentPosition] = imagePathC[j];
+                imagePathD[currentPosition] = imagePathC[j];
                 //imagePathC[currentPosition] = imagePath[j];
                 tempDom[currentPosition] = dominantAnglePrevalence[j][0];
                 newDom[currentPosition] = dominantAnglePrevalence[j][0];
@@ -1047,15 +1023,72 @@ float testApp::reloadImagesB(){
         //}
         }
     }
+
+        float spacer = 0.000001;
+
+        for (int i = 0; i <= imageCount; i++){
+            for (int j = 0; j <= imageCount; j++){
+                if ((newDom[i] == newDom[j] ) && (i != j)){
+                        tempDom[j] += spacer;
+                        newDom[j] += spacer;
+                        spacer  += .000001;
+                        cout << "added some to "<<i<< "  dom = " << newDom[j] <<endl;
+
+                }
+            }
+        }
+
     for (int i = 0; i <=imageCount; i++){
-        cout<< "image " << i << " sorted path B is " <<  imagePath[i] <<  " newDom is " << newDom[i]<<endl;
+        cout<< "image " << i << " sorted path is " <<  imagePathD[i] <<  " newDom is " << newDom[i]<<endl;
        // dominantAnglePrevalence[i][0] = newDom[i];
 
         //image[i].loadImage(imagePathB[i]);
         //imagePath[i] = imagePath[i];
-        image[i].loadImage(imagePath[i]);
+        image[i].loadImage(imagePathD[i]);
     }
 
     cout<<"RUN AUTOMATE CALCULATIONS AGAIN TO UPDATE FOR NEW SORT ORDER"<<endl;
     sortImagesB = false;
+}
+
+float testApp::doAutomation(){
+
+
+         //imageSelection = 0;//start at the beginning
+         imagesViewCount = 0;
+
+        for (int i = 0; i <= imageCount; i++){ //cycle through and process each image
+            imageSelection = i;
+            imageSelect();
+            imagesViewed();
+
+            if (showOriginal) {
+                drawMat(imgMat, 0, 0);
+            }
+
+            cvtColor(imgMat, bw, COLOR_RGB2GRAY);
+
+            if (blurToggle){
+                blur( bw, blurred, Size(blurAmount,blurAmount) );
+                } else {
+                bw = blurred;
+            }
+
+            Canny(blurred, dst, thresholdA, thresholdB, 3);
+
+            //Canny(imgMat, dst, 50, 200, 3);
+            cvtColor(dst, cdst, COLOR_GRAY2BGR);
+
+            if (showCanny){
+                drawMat(dst, 0, 0);}
+
+            //vector<Vec4i> lines;
+            HoughLinesP(dst, lines, 1, CV_PI/180, threshold0, threshold1, threshold2 );
+            //ofSetLineWidth(3);
+
+
+            generateLines();
+
+            calcImageSelection();
+        }
 }
