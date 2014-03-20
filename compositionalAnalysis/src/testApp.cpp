@@ -4,6 +4,10 @@
 
 /*
 TO DO:
+3/19/14
+
+doh, just finished pixel color averaging and realized that i could have just drawn each image over each other with the alpha as 255 / imageCount
+
 3/17/14
 
 ok, now it orders images by top angle, then resorts by top dominant angle (undoing before)... need to make it consider both
@@ -134,45 +138,52 @@ void testApp::setup(){
 
     //imgMat = toCv(image[imageSelection]);
 
+    mainGui.setup();
+	mainGui.add(filename.setup("",imagePath[imageSelection]));
+    mainGui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
+    mainGui.add(fastMode.setup("fast mode", false));
+    mainGui.add(oneShot.setup("export pdf", false));
 
+    pixelsGui.setup();
+    pixelsGui.setPosition(ofGetWidth()-170, 10);
+    pixelsGui.add(findPixels.setup("find pixel averages", false));
+    pixelsGui.add(findPixelsB.setup("layer all images equally", false));
 
-    gui.setup();
-	gui.add(filename.setup("",imagePath[imageSelection]));
-	gui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
-	gui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
+    lineGui.setup();
+    lineGui.setPosition(10,130);
+	lineGui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
+	lineGui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
 
-	gui.add(threshold0.setup("minIntersections", 50, 1, 500));
-	gui.add(threshold1.setup("minLinLength", 50, 1, 1000));
-	gui.add(threshold2.setup("maxLineGap", 10, 1, 400));
+	lineGui.add(threshold0.setup("minIntersections", 50, 1, 500));
+	lineGui.add(threshold1.setup("minLinLength", 50, 1, 1000));
+	lineGui.add(threshold2.setup("maxLineGap", 10, 1, 400));
 
-	gui.add(lineWidth.setup("line width", 2.5, 1, 10));
-	gui.add(showOriginal.setup("show image", true));
-	gui.add(blurToggle.setup("preprocess blur", true));
-	gui.add(blurAmount.setup("blur amount", 5, 1, 20));
+	lineGui.add(lineWidth.setup("line width", 2.5, 1, 10));
+	lineGui.add(showOriginal.setup("show image", true));
+	lineGui.add(blurToggle.setup("preprocess blur", true));
+	lineGui.add(blurAmount.setup("blur amount", 4, 1, 20));
 	//gui.add(showBlur.setup("show blur", false));
-	gui.add(showCanny.setup("show edges", false));
-	gui.add(showLines.setup("show lines", true));
-	gui.add(heatMap.setup("show heat map", false));
-	gui.add(heatMapB.setup("show heat map points", false));
-	gui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
-	gui.add(showCycle.setup("cycling", false));
-	gui.add(smoothToggle.setup("smooth", true));
-	gui.add(redGlowToggle.setup("red glow", false));
-    gui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
-    gui.add(fastMode.setup("fast mode", false));
+	lineGui.add(showCanny.setup("show edges", false));
+	lineGui.add(showLines.setup("show lines", true));
+	lineGui.add(heatMap.setup("show heat map", false));
+	lineGui.add(heatMapB.setup("show heat map points", false));
+	lineGui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
+	lineGui.add(showCycle.setup("cycling", false));
+	lineGui.add(smoothToggle.setup("smooth", true));
+	lineGui.add(redGlowToggle.setup("red glow", false));
     //gui.add(angleTolerance.setup("angle tolerance", 0, 0, 100));
-	gui.add(angleAverageThreshold.setup("interangle threshold", 0, 0, 4));
-    gui.add(calcIndividual.setup("calculate: individual", false));
-    gui.add(calcTotal.setup("calculate: total", false));
-    gui.add(automate.setup("automate calculations", false));
-    gui.add(sortImages.setup("resort the images", false));
-    gui.add(sortImagesB.setup("resort the images B", false));
-    gui.add(oneShot.setup("export pdf", false));
+	//gui.add(angleAverageThreshold.setup("interangle threshold", 0, 0, 4));
+    lineGui.add(calcIndividual.setup("calculate: individual", false));
+    lineGui.add(calcTotal.setup("calculate: total", false));
+    lineGui.add(automate.setup("automate calculations", false));
+    lineGui.add(sortImages.setup("resort the images", false));
+    lineGui.add(sortImagesB.setup("resort the images B", false));
 
 	bHide = true;
 	init = true;
 	initVal = 1;
 	heatMap = false;
+	angleAverageThreshold = 0;
 
 	//imageSelection = 0;
 	//oldSelection = 100;
@@ -341,6 +352,15 @@ if (refresh == true || fastMode == false){
         reloadImagesB();
     }
 
+    if(findPixels){
+        calcPixels();
+    }
+
+    if(findPixelsB){
+
+        averagePixels();
+    }
+
 
     if( oneShot ){
 		ofEndSaveScreenAsPDF();
@@ -348,15 +368,9 @@ if (refresh == true || fastMode == false){
 	}
 
     if (bHide) {
-    /*
-        string path = "jpg/";
-        ofDirectory dir2(path);
-        dir2.listDir();
-        dir2.sort();
-        filename = dir2.getName(imageSelection);
-        //filename = dir2.getName(imageSelection);
-    */
-        gui.draw();
+        mainGui.draw();
+        lineGui.draw();
+        pixelsGui.draw();
     }
 
 //fade in for app
@@ -418,8 +432,16 @@ void testApp::keyPressed(int key){
             calcIndividual = !calcIndividual;
             break;
         case 'h' :
+            mainGui.setPosition(10,10);
+            lineGui.setPosition(10,130);
+            pixelsGui.setPosition(ofGetWidth()-170, 10);
             bHide = !bHide;
             break;
+
+        case '0' :
+            findPixelsB = !findPixelsB;
+            break;
+
         case 's' :
             //gui.saveToFile("settings.xml");
             //cout << "SETTINGS SAVED TO \"settings.xml\"" << endl;
@@ -427,7 +449,7 @@ void testApp::keyPressed(int key){
             cout << "EXPORTING PDF... SLOWLY..." << endl;
             break;
         case 'l' :
-            gui.loadFromFile("settings.xml");
+            lineGui.loadFromFile("settings.xml");
             cout << "SETTINGS LOADED FROM \"settings.xml\"" << endl;
             break;
     }
@@ -1091,4 +1113,174 @@ float testApp::doAutomation(){
 
             calcImageSelection();
         }
+}
+
+void testApp::averagePixels(){
+    //bHide = false;
+
+    mainGui.setPosition(2000, 2000);
+    lineGui.setPosition(2000, 2000);
+    pixelsGui.setPosition(2000, 2000);
+
+    //fastMode = true;
+
+    ofSetBackgroundAuto(false);
+    showOriginal = false;
+    showLines = false;
+
+    // METHOD 1
+/*
+    ofEnableAlphaBlending();
+    float alpha = 255 / imageCount;
+    ofSetColor(255,255,255, alpha);
+    image[imageSelection].draw(0,0);
+    //image[imageSelection]->draw();
+    ofDisableAlphaBlending();
+    cout << "drawing image " << imageSelection << endl;
+*/
+
+    //METHOD 2, divides evenly as it goes along
+
+    for (int i = 0; i < imageSelection; i++){
+        ofEnableAlphaBlending();
+        float alpha;
+        if (imageSelection > 0){
+            alpha = 255 / float(imageSelection);
+            } else {
+            alpha = 255;
+            }
+        ofSetColor(255,255,255, alpha);
+        image[i].draw(0,0);
+        //image[imageSelection]->draw();
+        //ofDisableAlphaBlending();
+        cout<< " alpha is " << alpha << endl;
+    }
+    cout << "drawing image " << imageSelection << endl;
+
+
+        //image[imageSelection].draw(0,0);
+
+    if (imageSelection <= imageCount){
+    //for (int i = 0; i <= imageCount; i++){
+        //image[i].draw(0,0,ofGetWidth(), ofGetHeight());
+        imageSelection++;
+    } else {
+        fastMode = false;
+        findPixelsB = false;
+    }
+
+    //ofSetBackgroundAuto(false);
+
+
+
+}
+void testApp::calcPixels(){
+/*
+    for (int i = 0; i <= imageCount; i++){
+        //ofPixels pix;
+        unsigned char * pixels = image[i].getPixels();
+    }
+    for (int i = 0; i <= imageCount; i++){
+        for (int xx = 0; xx < pixels[i].size; xx++){
+            for (int yy = 0; yy < pixels[i].size
+            ofColor pixColor[i][xx*yy] = pixels.getColor(xx, yy);
+
+        }
+    }
+*/
+
+    //ofColor pixelColor[imageCount][int(image[0].getWidth() * image[0].getHeight())];
+    //ofColor pixelColor[imageCount][1024*768];
+    //float cGreen[imageCount][image[0].width * image[0].height];
+    //float cBlue[imageCount][image[0].width * image[0].height];
+
+/*
+    float redAverage[image[0].width * image[0].height];
+    float greenAverage[image[0].width * image[0].height];
+    float blueAverage[image[0].width * image[0].height];
+    */
+
+    pixelAmount = image[0].width * image[0].height;
+
+    for (int i = 0; i < pixelAmount; i++){
+        redAverage[i] = 0;
+        greenAverage[i] = 0;
+        blueAverage[i] = 0;
+        pixelAverage[i].set(0,0,0);
+    }
+
+    for (int z = 0; z <= imageCount; z++){
+
+        int w = image[z].getWidth();
+        int h = image[z].getHeight();
+
+        if (w != 1024 || h != 683){
+            cout << "BROKEN SIZE"<<endl;
+        }
+
+
+        int type = image[z].type;
+        int bpp = image[z].bpp / 8;
+        unsigned char * pixels = image[z].getPixels();
+        for (int i = 0; i < w; i++){
+            for (int j = 0; j < h; j++){
+
+                if(bpp >= 3){
+                    float cRed = pixels[(j*w+i)*bpp+0];
+                    float cGreen = pixels[(j*w+i)*bpp+1];
+                    float cBlue = pixels[(j*w+i)*bpp+2];
+
+                    redAverage[j*w+i] += cRed;
+                    greenAverage[j*w+i] += cGreen;
+                    blueAverage[j*w+i] += cBlue;
+
+                    if(bpp >= 4){
+                        float cAlpha = pixels[(j*w+i)*bpp+3];
+                        cout << "BROKEN ALPHA"<<endl;
+                    }
+                    //pixelColor[z][j*w+i].set(cRed, cGreen, cBlue);
+                    //cout<<"image- " << z << " column- " << i << " row- " << j << "Color(" << cRed <<", " << cGreen <<", " << cBlue << ")" << endl;
+
+                }
+                else if(bpp == 1){
+                    float cGray = pixels[(j*w+i)];
+
+                    cout << "BROKEN GRAY"<<endl;
+                } else {
+                    cout << "BROKEN NOTHING"<<endl;
+                }
+
+           }
+        }
+    }
+    cout << "done pixelling" << endl;
+
+
+
+    for (int i = 0; i < pixelAmount; i++){
+        redAverage[i] = redAverage[i] / imageCount;
+        greenAverage[i] = greenAverage[i] / imageCount ;
+        blueAverage[i] = blueAverage[i] / imageCount;
+        pixelAverage[i].set(redAverage[i], greenAverage[i], blueAverage[i]);
+    }
+
+    cout << "average red for pixel 0 =" << redAverage[0] << " average green = " << greenAverage[0] << " average blue = " << blueAverage[0] << endl;
+    //test output
+
+    cout << "sizeof pixelAverage = " << pixelAmount << endl;
+
+   // for (int x = 0; x < pixelAmount; x++){
+    //int x = 0;
+        for (int i = 0; i < image[0].width; i++){
+            for (int j = 0; j < image[0].height; j++){
+
+                ofSetColor(pixelAverage[j * image[0].width +i]);
+                ofRect(i, j, 1, 1);
+                //cout<< "x = " << i << " y = " << j << "   ";
+                //x++;
+            //}
+        }
+    }
+    cout << "do you see pixel averages?" << endl;
+    //findPixels = false;
 }

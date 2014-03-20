@@ -30,7 +30,7 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		float generateLines();
-		void imageSelect();
+		void imageSelect(), calcPixels(), averagePixels();
 		float calcImageSelection(), calcAverage(), doAutomation(), reloadImages(), reloadImagesB();
 		bool neverLines;
 
@@ -75,16 +75,24 @@ class testApp : public ofBaseApp{
         float specialSort[362]; //top angles sorted by special score (sum(each angle occurance * each dominance )(
 
 
-        ofxPanel gui;
+        ofxPanel mainGui, lineGui, pixelsGui;
         ofxFloatSlider threshold0, threshold1, threshold2;//t0slider, t1slider, t2slider;
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
         ofxIntSlider heatMapAlpha, blurAmount, angleTolerance, angleAverageThreshold;
         bool bHide;
         ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
         ofxToggle fastMode, calcIndividual, calcTotal, heatMapB;
-        ofxToggle automate, sortImages, sortImagesB;
+        ofxToggle automate, sortImages, sortImagesB, findPixels, findPixelsB;
 
         ofxLabel filename, framerate;
+
+        //ofColor pixelColor[786432];
+        //float redAverage;
+        float redAverage[1024 * 683];
+        float greenAverage[1024 * 683];
+        float blueAverage[1024 * 683];
+        ofColor pixelAverage[1024 * 683];
+        int pixelAmount;
 
 
 };
