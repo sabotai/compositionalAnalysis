@@ -3,7 +3,12 @@
 
 
 /*
-TO DO:
+NOTES / TO DO:
+
+4/1/14
+other idea for manipulation: divide the width (or height) by the number of images and find that many pixel rows(or columns) from each image
+    -perhaps each image could be rated and given that many
+
 3/19/14
 
 doh, just finished pixel color averaging and realized that i could have just drawn each image over each other with the alpha as 255 / imageCount
@@ -138,19 +143,25 @@ void testApp::setup(){
 
     //imgMat = toCv(image[imageSelection]);
 
+
+
     mainGui.setup();
+    mainGui.setName("System");
 	mainGui.add(filename.setup("",imagePath[imageSelection]));
     mainGui.add(framerate.setup("framerate", ofToString(ofGetFrameRate())));
     mainGui.add(fastMode.setup("fast mode", false));
+	mainGui.add(showCycle.setup("cycling", false));
     mainGui.add(oneShot.setup("export pdf", false));
 
     pixelsGui.setup();
-    pixelsGui.setPosition(ofGetWidth()-170, 10);
-    pixelsGui.add(findPixels.setup("find pixel averages", false));
-    pixelsGui.add(findPixelsB.setup("layer all images equally", false));
+    pixelsGui.setName("Image Layer Actions");
+    pixelsGui.setPosition(ofGetWidth()-220, 10);
+    pixelsGui.add(findPixels.setup("pixels averaged(old)", false));
+    pixelsGui.add(findPixelsB.setup("layer images equally", false));
 
     lineGui.setup();
-    lineGui.setPosition(10,130);
+    lineGui.setPosition(10,160);
+    lineGui.setName("Edge/Line Detection");
 	lineGui.add(thresholdA.setup("cannyThreshold1", 50, 1, 1000));
 	lineGui.add(thresholdB.setup("cannyThreshold2", 200, 1, 1000));
 
@@ -158,26 +169,34 @@ void testApp::setup(){
 	lineGui.add(threshold1.setup("minLinLength", 50, 1, 1000));
 	lineGui.add(threshold2.setup("maxLineGap", 10, 1, 400));
 
-	lineGui.add(lineWidth.setup("line width", 2.5, 1, 10));
-	lineGui.add(showOriginal.setup("show image", true));
 	lineGui.add(blurToggle.setup("preprocess blur", true));
 	lineGui.add(blurAmount.setup("blur amount", 4, 1, 20));
 	//gui.add(showBlur.setup("show blur", false));
-	lineGui.add(showCanny.setup("show edges", false));
-	lineGui.add(showLines.setup("show lines", true));
-	lineGui.add(heatMap.setup("show heat map", false));
-	lineGui.add(heatMapB.setup("show heat map points", false));
-	lineGui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
-	lineGui.add(showCycle.setup("cycling", false));
-	lineGui.add(smoothToggle.setup("smooth", true));
-	lineGui.add(redGlowToggle.setup("red glow", false));
+
+    aestheticsGui.setup();
+    aestheticsGui.setPosition(10, 330);
+    aestheticsGui.setName("Appearance");
+	aestheticsGui.add(lineWidth.setup("line width", 2.5, 1, 10));
+	aestheticsGui.add(showOriginal.setup("show image", true));
+	aestheticsGui.add(showCanny.setup("show edges", false));
+	aestheticsGui.add(showLines.setup("show lines", true));
+	aestheticsGui.add(heatMap.setup("show heat map", false));
+	aestheticsGui.add(heatMapB.setup("show heat map points", false));
+	aestheticsGui.add(heatMapAlpha.setup("heat map alpha", 20, 1, 255));
+	aestheticsGui.add(smoothToggle.setup("smooth", true));
+	aestheticsGui.add(redGlowToggle.setup("red glow", true));
+
+
     //gui.add(angleTolerance.setup("angle tolerance", 0, 0, 100));
 	//gui.add(angleAverageThreshold.setup("interangle threshold", 0, 0, 4));
-    lineGui.add(calcIndividual.setup("calculate: individual", false));
-    lineGui.add(calcTotal.setup("calculate: total", false));
-    lineGui.add(automate.setup("automate calculations", false));
-    lineGui.add(sortImages.setup("resort the images", false));
-    lineGui.add(sortImagesB.setup("resort the images B", false));
+	calcGui.setup();
+	calcGui.setPosition(10, 550);
+	calcGui.setName("Line Calculations");
+    calcGui.add(calcIndividual.setup("calc single", false));
+    calcGui.add(calcTotal.setup("calc total viewed", false));
+    calcGui.add(automate.setup("automate calculations", false));
+    calcGui.add(sortImages.setup("sort by total dominance", false));
+    calcGui.add(sortImagesB.setup("sort by mode/dominance", false));
 
 	bHide = true;
 	init = true;
@@ -335,21 +354,50 @@ if (refresh == true || fastMode == false){
 
     if (automate){
 
+    /* OLD AUTOMATE THAT WORKS FINE
+        redGlowToggle = false;
         doAutomation();
         calcAverage();
         cout << " DONE AUTOMATING -- JESUS CHRIST, FINALLY!" << endl;
         automate = false;
+    */
+
     }
 
     if(sortImages){
+        redGlowToggle = false;
+        doAutomation();
+        calcAverage();
+        cout << " DONE AUTOMATING -- JESUS CHRIST, FINALLY!" << endl;
+
         reloadImages();
+        doAutomation();
+        calcAverage();
     }
 
     if(sortImagesB){
         //doAutomation();
         //calcAverage();
         //reloadImages();
+
+
+        //reloadImagesB();
+
+
+        redGlowToggle = false;
+        doAutomation();
+        calcAverage();
+        cout << " DONE AUTOMATING -- JESUS CHRIST, FINALLY!" << endl;
+
+        reloadImages();
+        doAutomation();
+        calcAverage();
+
         reloadImagesB();
+        doAutomation();
+        calcAverage();
+
+        automate = false;
     }
 
     if(findPixels){
@@ -370,6 +418,8 @@ if (refresh == true || fastMode == false){
     if (bHide) {
         mainGui.draw();
         lineGui.draw();
+        aestheticsGui.draw();
+        calcGui.draw();
         pixelsGui.draw();
     }
 
@@ -433,8 +483,12 @@ void testApp::keyPressed(int key){
             break;
         case 'h' :
             mainGui.setPosition(10,10);
-            lineGui.setPosition(10,130);
-            pixelsGui.setPosition(ofGetWidth()-170, 10);
+
+            lineGui.setPosition(10,160);
+            pixelsGui.setPosition(ofGetWidth()-220, 10);
+            aestheticsGui.setPosition(10, 330);
+            calcGui.setPosition(10, 550);
+
             bHide = !bHide;
             break;
 
@@ -536,7 +590,7 @@ int testApp::imagesViewed(){
     return imagesViewCount;
 }
 
-float testApp::generateLines(){
+void testApp::generateLines(){
     for (int i = 0; i < max; i++){
         angle[imageSelection][i] = 361;
     }
@@ -594,7 +648,7 @@ void testApp::imageSelect(){
         imgMat = toCv(image[imageSelection]);
 }
 
-float testApp::calcImageSelection(){
+void testApp::calcImageSelection(){
     //first sort the parallels
 
 //int ii;
@@ -739,7 +793,7 @@ float testApp::calcImageSelection(){
 }
 
 
-float testApp::calcAverage(){
+void testApp::calcAverage(){
 //find most common angle to find some kind of most average image
 //can then cycle through to least similar -> so if angle 180 is mode angle, things that are closest to mode angle with highest dominanceRatio are next
 
@@ -874,7 +928,7 @@ for (int i = 0; i < imageCount; i++){
 }
 
 
-float testApp::reloadImages(){
+void testApp::reloadImages(){
 //reload the images based on the calculations
 
 //if the dominant angle matches the specialSort, then move it up
@@ -1003,7 +1057,7 @@ float testApp::reloadImages(){
 
 
 
-float testApp::reloadImagesB(){
+void testApp::reloadImagesB(){
 //reload the images based on the calculations
 
 //if the dominant angle matches the specialSort, then move it up
@@ -1073,7 +1127,7 @@ float testApp::reloadImagesB(){
     sortImagesB = false;
 }
 
-float testApp::doAutomation(){
+void testApp::doAutomation(){
 
 
          //imageSelection = 0;//start at the beginning
@@ -1118,9 +1172,11 @@ float testApp::doAutomation(){
 void testApp::averagePixels(){
     //bHide = false;
 
-    mainGui.setPosition(2000, 2000);
-    lineGui.setPosition(2000, 2000);
-    pixelsGui.setPosition(2000, 2000);
+    mainGui.setPosition(-2000, -2000); // send these off screen so they dont interfere
+    lineGui.setPosition(-2000, -2000);
+    pixelsGui.setPosition(-2000, -2000);
+    aestheticsGui.setPosition(-2000, -2000);
+	calcGui.setPosition(-2000, -2000);
 
     //fastMode = true;
 
@@ -1145,10 +1201,14 @@ void testApp::averagePixels(){
         ofEnableAlphaBlending();
         float alpha;
         if (imageSelection > 0){
-            alpha = 255 / float(imageSelection);
-            } else {
-            alpha = 255;
-            }
+                alpha = 255 / float(imageSelection);
+        } else {
+            alpha = 255; //start the first image at full opacity
+        }
+
+        if (alpha < 1) {
+            alpha = 1; //oF doesnt seem to support actual float values, as the opacity goes to zero for numbers between 0 and 1
+        }
         ofSetColor(255,255,255, alpha);
         image[i].draw(0,0);
         //image[imageSelection]->draw();
@@ -1165,8 +1225,9 @@ void testApp::averagePixels(){
         //image[i].draw(0,0,ofGetWidth(), ofGetHeight());
         imageSelection++;
     } else {
-        fastMode = false;
+        fastMode = true;
         findPixelsB = false;
+        cout << "TURNING OFF AVERAGING"<<endl;
     }
 
     //ofSetBackgroundAuto(false);

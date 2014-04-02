@@ -29,9 +29,9 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		float generateLines();
+		void generateLines();
 		void imageSelect(), calcPixels(), averagePixels();
-		float calcImageSelection(), calcAverage(), doAutomation(), reloadImages(), reloadImagesB();
+		void calcImageSelection(), calcAverage(), doAutomation(), reloadImages(), reloadImagesB();
 		bool neverLines;
 
         bool init, refresh;
@@ -75,7 +75,7 @@ class testApp : public ofBaseApp{
         float specialSort[362]; //top angles sorted by special score (sum(each angle occurance * each dominance )(
 
 
-        ofxPanel mainGui, lineGui, pixelsGui;
+        ofxPanel mainGui, lineGui, pixelsGui, aestheticsGui, calcGui;
         ofxFloatSlider threshold0, threshold1, threshold2;//t0slider, t1slider, t2slider;
         ofxFloatSlider thresholdA, thresholdB, thresholdC, lineWidth;//t0slider, t1slider, t2slider;
         ofxIntSlider heatMapAlpha, blurAmount, angleTolerance, angleAverageThreshold;
