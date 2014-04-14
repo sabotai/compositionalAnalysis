@@ -83,6 +83,7 @@ class testApp : public ofBaseApp{
         ofxToggle showCanny, showBlur, blurToggle, showOriginal, showLines, showCycle, heatMap, smoothToggle, redGlowToggle, oneShot;//, cannyToggle, linesToggle;
         ofxToggle fastMode, calcIndividual, calcTotal, heatMapB;
         ofxToggle automate, sortImages, sortImagesB, findPixels, findPixelsB;
+        ofxToggle fullscreen;
 
         ofxLabel filename, framerate;
 
@@ -93,6 +94,9 @@ class testApp : public ofBaseApp{
         float blueAverage[1024 * 683];
         ofColor pixelAverage[1024 * 683];
         int pixelAmount;
+
+        float originalWidth, originalHeight;
+        bool scale;
 
 
 };

@@ -210,6 +210,10 @@ void testApp::setup(){
 	//ofEnableSmoothing();
     imageSelect();
 
+    originalWidth = ofGetWidth();
+    originalHeight = ofGetHeight();
+    fullscreen = false;
+
 
 }
 
@@ -223,6 +227,24 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
     filename = imagePath[imageSelection];
+
+    ofTranslate(ofGetWidth() / 2 - originalWidth/2, ofGetHeight() / 2 - originalHeight/2,0);
+
+
+    if (fullscreen){
+        ofToggleFullscreen();
+        //float newWidth = ofGetScreenWidth() / originalWidth;
+        //cout << "newWidth = " << newWidth << "  newHeight = " << newHeight << endl;
+
+        scale = !scale;
+        fullscreen = false;
+    } else if (scale) {
+        //float newHeight = ofGetScreenHeight() / originalHeight;
+        //ofScale(newHeight, newHeight, 1);
+        //scaling destroys the framerate :/
+
+    }
+
 
 
 	if( oneShot ){
@@ -301,10 +323,10 @@ if (refresh == true || fastMode == false){
 
         //ofDisableSmoothing();
         if (heatMapAlpha < 255){
-        ofSetColor(0,0,255,heatMapAlpha);
+            ofSetColor(0,0,255,heatMapAlpha);
         } else {
-        ofSetColor(0,0,255);
-        cout << "is it faster?" << endl; //attempt to improve performance by not drawing alpha, but it didnt work
+            ofSetColor(0,0,255);
+            cout << "is it faster?" << endl; //attempt to improve performance by not drawing alpha, but it didnt work
         }
 
 
@@ -473,8 +495,8 @@ void testApp::keyPressed(int key){
             showCycle = !showCycle;
             break;
         case 'f' :
-            heatMap = !heatMap;
-
+            fullscreen = !fullscreen;
+            break;
         case 'b' :
             blurToggle = !blurToggle;
             break;
