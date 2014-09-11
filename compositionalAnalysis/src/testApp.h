@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxCv.h"
 #include "ofxGui.h"
+#include "ofxCv.h"
 #include <iostream>
 
 #define max 5000

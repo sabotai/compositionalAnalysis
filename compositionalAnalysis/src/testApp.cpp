@@ -228,7 +228,7 @@ void testApp::update(){
 void testApp::draw(){
     filename = imagePath[imageSelection];
 
-    ofTranslate(ofGetWidth() / 2 - originalWidth/2, ofGetHeight() / 2 - originalHeight/2,0);
+    //fofTranslate(ofGetWidth() / 2 - originalWidth/2, ofGetHeight() / 2 - originalHeight/2,0);
 
 
     if (fullscreen){
@@ -239,9 +239,9 @@ void testApp::draw(){
         scale = !scale;
         fullscreen = false;
     } else if (scale) {
-        //float newHeight = ofGetScreenHeight() / originalHeight;
-        //ofScale(newHeight, newHeight, 1);
-        //scaling destroys the framerate :/
+        float newHeight = ofGetHeight() / originalHeight;
+        ofScale(newHeight, newHeight, 1);
+       // scaling destroys the framerate :/
 
     }
 
@@ -591,6 +591,10 @@ void testApp::mouseReleased(int x, int y, int button){
 
 //--------------------------------------------------------------
 void testApp::windowResized(int w, int h){
+
+scale = true;
+       // float newHeight = ofGetScreenHeight() / originalHeight;
+        //ofScale(newHeight, newHeight, 1);
 
 }
 
@@ -1367,3 +1371,4 @@ void testApp::calcPixels(){
     cout << "do you see pixel averages?" << endl;
     //findPixels = false;
 }
+
